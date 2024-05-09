@@ -1,11 +1,23 @@
 import { Button, Flex, Image, Text } from '@chakra-ui/react';
 import React, { useState } from 'react';
+import TextInput from '../components/TextInput';
+import { FaAssistiveListeningSystems, FaMicrophone } from "react-icons/fa";
+
 
 const MainPage = () => {
+    let audioInstance = null;
+
     const [mediaRecorder, setMediaRecorder] = useState();
     const [isRecording, setIsRecording] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
 
     const startRecording = async () => {
+
+        if (audioInstance && !audioInstance.ended) {
+            console.log("Cannot start recording");
+            return;
+        }
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const recorder = new MediaRecorder(stream);
@@ -23,6 +35,7 @@ const MainPage = () => {
                 const formData = new FormData();
                 formData.append('audio', audioBlob);
                 console.log(chunks);
+                setIsPlaying(true);
                 try {
                     const response = await fetch('http://127.0.0.1:8080/process-audio', {
                         method: "POST",
@@ -33,7 +46,18 @@ const MainPage = () => {
                         console.log("Audio uploaded successfully");
                         const returnedBlob = await response.blob();
                         const returnedURL = URL.createObjectURL(returnedBlob);
-                        await new Audio(returnedURL).play();
+
+                        const playAudioPromise = new Promise((resolve, reject) => {
+                            audioInstance = new Audio(returnedURL);
+                            audioInstance.onended = resolve;
+                            audioInstance.onerror = reject;
+                            audioInstance.play();
+                        });
+
+                        // Чекаємо на завершення програвання аудіо
+                        await playAudioPromise;
+                        setIsPlaying(false);
+                        console.log("Audio playback finished");
                     } else {
                         console.error("Server error: ", response.statusText);
                     }
@@ -58,21 +82,28 @@ const MainPage = () => {
 
     return (
         <Flex
-            justifyContent="center"
-            mt="30%"
+            justifyContent="space-between"
             flexDirection="column"
             alignItems="center"
+            h={"100vh"}
         >
-            {!isRecording ? (
-                <Button onClick={startRecording} h={{ base: "150px", md: "250px" }} w={{ base: "150px", md: "250px" }} borderRadius={"50%"}>
-                    <Image w={{ base: 10, md: 14 }} src="/mic-microphone-icon.svg" />
-                </Button>
-            ) : (
-                <Button onClick={stopRecording} h={{ base: "150px", md: "250px" }} w={{ base: "150px", md: "250px" }} borderRadius={"50%"}>
-                    {/* Add a stop icon or text here if needed */}
-                </Button>
-            )}
-            <Text fontSize={{ base: 15, md: 20 }} my={10} color={"gray.light"}>Press button to start recording...</Text>
+            <Flex>
+            </Flex>
+            <Flex flexDirection={"column"} alignItems={"center"} gap={4}>
+                {!isRecording ? (
+                    <Button isDisabled={isPlaying ? true : false} onClick={startRecording} h={{ base: "150px", md: "250px" }} w={{ base: "150px", md: "250px" }} borderRadius={"50%"}>
+                        <FaMicrophone size={90} />
+                    </Button>
+                ) : (
+                    <Button onClick={stopRecording} h={{ base: "150px", md: "250px" }} w={{ base: "150px", md: "250px" }} borderRadius={"50%"}>
+                        <FaAssistiveListeningSystems size={90} />
+                    </Button>
+                )}
+                <Text fontSize={{ base: 15, md: 20 }} color={"gray.light"}>{!isRecording && !isPlaying ? "Press button to start recording" : isRecording && !isPlaying ? "Recording" : "Replaying audio"}</Text>
+            </Flex>
+            <Flex justify={'flex-end'} w={"full"}>
+                <TextInput></TextInput>
+            </Flex>
         </Flex>
     );
 };

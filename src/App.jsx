@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import MainPage from "./pages/MainPage";
 import { Route, Routes } from "react-router-dom";
+import ChatComponent from "./components/ChatComponent";
 
 function App() {
   return (
