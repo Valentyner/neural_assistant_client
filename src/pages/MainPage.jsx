@@ -1,7 +1,9 @@
-import { Button, Flex, Image, Text } from '@chakra-ui/react';
+import { Button, Container, Flex, Image, Text } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import TextInput from '../components/TextInput';
 import { FaAssistiveListeningSystems, FaMicrophone } from "react-icons/fa";
+import { IoChatbox } from "react-icons/io5";
+import Header from '../components/Header';
 
 
 const MainPage = () => {
@@ -53,8 +55,6 @@ const MainPage = () => {
                             audioInstance.onerror = reject;
                             audioInstance.play();
                         });
-
-                        // Чекаємо на завершення програвання аудіо
                         await playAudioPromise;
                         setIsPlaying(false);
                         console.log("Audio playback finished");
@@ -81,32 +81,34 @@ const MainPage = () => {
     };
 
     return (
-        <Flex
-            justifyContent="space-between"
-            flexDirection="column"
-            alignItems="center"
-            h={"100vh"}
-        >
-            <Flex>
+        <>
+
+            <Flex
+                justifyContent="space-between"
+                flexDirection="column"
+                alignItems="center"
+                h={"50vh"}
+            >
+                <Header icon={true}/>
+                <Flex flexDirection={"column"} alignItems={"center"}>
+                    {!isRecording ? (
+                        <Button isDisabled={isPlaying ? true : false} onClick={startRecording} h={{ base: "150px", md: "250px" }} w={{ base: "150px", md: "250px" }} borderRadius={"50%"}>
+                            <FaMicrophone size={90} />
+                        </Button>
+                    ) : (
+                        <Button onClick={stopRecording} h={{ base: "150px", md: "250px" }} w={{ base: "150px", md: "250px" }} borderRadius={"50%"}>
+                            <FaAssistiveListeningSystems size={90} />
+                        </Button>
+                    )}
+                    <Text fontSize={{ base: 15, md: 20 }} color={"gray.light"}>{!isRecording && !isPlaying ? "Press button to start recording" : isRecording && !isPlaying ? "Recording" : "Replaying audio"}</Text>
+                </Flex>
             </Flex>
-            <Flex flexDirection={"column"} alignItems={"center"} gap={4}>
-                {!isRecording ? (
-                    <Button isDisabled={isPlaying ? true : false} onClick={startRecording} h={{ base: "150px", md: "250px" }} w={{ base: "150px", md: "250px" }} borderRadius={"50%"}>
-                        <FaMicrophone size={90} />
-                    </Button>
-                ) : (
-                    <Button onClick={stopRecording} h={{ base: "150px", md: "250px" }} w={{ base: "150px", md: "250px" }} borderRadius={"50%"}>
-                        <FaAssistiveListeningSystems size={90} />
-                    </Button>
-                )}
-                <Text fontSize={{ base: 15, md: 20 }} color={"gray.light"}>{!isRecording && !isPlaying ? "Press button to start recording" : isRecording && !isPlaying ? "Recording" : "Replaying audio"}</Text>
-            </Flex>
-            <Flex justify={'flex-end'} w={"full"}>
-                <TextInput></TextInput>
-            </Flex>
-        </Flex>
+        </>
     );
 };
 
 export default MainPage;
+
+
+
 
